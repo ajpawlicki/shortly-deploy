@@ -81,7 +81,8 @@ module.exports = function(grunt) {
     },
     clean: ['public/dist']
   });
-
+  var target = grunt.option('target') || 'server-dev';
+  
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-contrib-concat');
@@ -93,7 +94,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-git');
   grunt.loadNpmTasks('grunt-contrib-clean');
 
-
+  
   grunt.registerTask('server-dev', function (target) {
     grunt.task.run([ 'nodemon', 'watch' ]);
   });
@@ -110,19 +111,18 @@ module.exports = function(grunt) {
     'gitpush'
   ]);
 
-  grunt.registerTask('build', ['test', 'eslint', 'clean'
+  grunt.registerTask('build', ['test', 'eslint'
   ]);
 
   grunt.registerTask('upload', function(n) {
     if (grunt.option('prod')) {
-      ['concat', 'uglify'];
+      grunt.task.run['clean', 'concat', 'uglify', 'gitpush'];
     } else {
       grunt.task.run([ 'server-dev' ]);
     }
   });
 
-  grunt.registerTask('deploy', ['nodemon'
-    // add your deploy tasks here
+  grunt.registerTask('deploy', ['build', 'upload'
   ]);
 
 
