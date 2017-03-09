@@ -3,6 +3,13 @@ module.exports = function(grunt) {
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
     concat: {
+      options: {
+        separator: ';',
+      },
+      dist: {
+        src: ['app/**/*.js', 'lib/**/*.js', 'public/**/*.js'],
+        dest: 'public/dist/basic.js',
+      },
     },
 
     mochaTest: {
@@ -21,11 +28,21 @@ module.exports = function(grunt) {
     },
 
     uglify: {
+      dist: {
+        files: {
+          'public/dist/basic.min.js': ['public/dist/basic.js']
+        }
+      }
     },
 
     eslint: {
+      options: {
+        configFile: '.eslintrc.js',
+        quiet: false
+      },
       target: [
-        // Add list of files to lint here
+        'public/client/**/*.js',
+        'app/**/*.js'
       ]
     },
 
@@ -37,6 +54,7 @@ module.exports = function(grunt) {
         files: [
           'public/client/**/*.js',
           'public/lib/**/*.js',
+          'public/dist/*.js'
         ],
         tasks: [
           'concat',
@@ -61,6 +79,7 @@ module.exports = function(grunt) {
         }
       }
     },
+    clean: ['public/dist']
   });
 
   grunt.loadNpmTasks('grunt-contrib-uglify');
@@ -72,6 +91,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-shell');
   grunt.loadNpmTasks('grunt-nodemon');
   grunt.loadNpmTasks('grunt-git');
+  grunt.loadNpmTasks('grunt-contrib-clean');
 
 
   grunt.registerTask('server-dev', function (target) {
@@ -90,12 +110,12 @@ module.exports = function(grunt) {
     'gitpush'
   ]);
 
-  grunt.registerTask('build', [
+  grunt.registerTask('build', ['test', 'eslint', 'clean'
   ]);
 
   grunt.registerTask('upload', function(n) {
     if (grunt.option('prod')) {
-      // add your production server task here
+      ['concat', 'uglify'];
     } else {
       grunt.task.run([ 'server-dev' ]);
     }
