@@ -2,13 +2,14 @@ module.exports = function(grunt) {
 
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
+
     concat: {
       options: {
-        separator: ';',
+        separator: '; ',
       },
       dist: {
-        src: ['app/**/*.js', 'lib/**/*.js', 'public/**/*.js'],
-        dest: 'public/dist/basic.js',
+        src: ['public/client/**/*.js'],
+        dest: 'public/dist/<%= pkg.name %>.js',
       },
     },
 
@@ -30,23 +31,31 @@ module.exports = function(grunt) {
     uglify: {
       dist: {
         files: {
-          'public/dist/basic.min.js': ['public/dist/basic.js']
+          'public/dist/<%= pkg.name %>.min.js': ['<%= concat.dist.dest %>']
         }
       }
     },
 
     eslint: {
-      options: {
-        configFile: '.eslintrc.js',
-        quiet: false
-      },
       target: [
-        'public/client/**/*.js',
-        'app/**/*.js'
+        'Gruntfile.js',
+        'app/**/*.js',
+        'public/**/*.js',
+        'lib/**/*.js',
+        './*.js',
+        'spec/**/*.js'
       ]
     },
 
     cssmin: {
+      options: {
+        keepSpecialComments: 0
+      },
+      dist: {
+        files: {
+          'public/dist/style.min.css': 'public/style.css'
+        }
+      }
     },
 
     watch: {
@@ -69,8 +78,15 @@ module.exports = function(grunt) {
 
     shell: {
       prodServer: {
+        command: 'git push live server',
+        options: {
+          stdout: true,
+          stderr: true,
+          failOnError: true
+        }
       }
     },
+
     gitpush: {
       yourTarget: {
         options: {
@@ -81,7 +97,6 @@ module.exports = function(grunt) {
     },
     clean: ['public/dist']
   });
-  var target = grunt.option('target') || 'server-dev';
   
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-contrib-watch');
@@ -104,25 +119,29 @@ module.exports = function(grunt) {
   ////////////////////////////////////////////////////
 
   grunt.registerTask('test', [
+    'eslint',
     'mochaTest'
   ]);
 
-  grunt.registerTask('git', [
-    'gitpush'
-  ]);
+  // grunt.registerTask('git', [
+  //   'gitpush'
+  // ]);
 
-  grunt.registerTask('build', ['test', 'eslint'
+  grunt.registerTask('build', [
+    'concat',
+    'uglify',
+    'cssmin'
   ]);
 
   grunt.registerTask('upload', function(n) {
     if (grunt.option('prod')) {
-      grunt.task.run['clean', 'concat', 'uglify', 'gitpush'];
+      grunt.task.run(['shell:prodServer']);
     } else {
       grunt.task.run([ 'server-dev' ]);
     }
   });
 
-  grunt.registerTask('deploy', ['build', 'upload'
+  grunt.registerTask('deploy', ['test','build', 'upload'
   ]);
 
 
